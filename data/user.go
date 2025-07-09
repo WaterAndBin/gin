@@ -3,17 +3,22 @@ package data
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 	"order_go/core"
+	"order_go/sql"
 	"order_go/utils"
 	"time"
 )
 
 func InsertUser(context *gin.Context, login core.Login) {
-	db := context.MustGet("db").(*gorm.DB)
-	createResult := db.Create(&core.User{
+	hashRes, err := utils.HashPassword(login.Password)
+
+	if err != nil {
+		utils.Error(context, "出错！")
+	}
+
+	createResult := sql.DB.Create(&core.User{
 		Account:  login.Account,
-		Password: login.Password,
+		Password: hashRes,
 		UserName: time.Now().String(),
 	})
 
@@ -24,19 +29,27 @@ func InsertUser(context *gin.Context, login core.Login) {
 	}
 }
 
-func FindUser(context *gin.Context, query core.User) bool {
-	db := context.MustGet("db").(*gorm.DB)
+func FindUser(context *gin.Context, query core.User) (core.User, bool) {
 	var user core.User
 
-	result := db.Where(query).Limit(1).First(&user)
+	result := sql.DB.Where(query).Limit(1).First(&user)
 
 	if result.Error != nil {
 		fmt.Println(result.Error)
-		return false
+		return user, false
 	}
 	// 没查找到数据
 	if result.RowsAffected == 0 {
-		return false
+		return user, false
 	}
-	return true
+	return user, true
+}
+
+func GetUserInfo(context *gin.Context, login core.Login, query core.User) {
+	err := utils.ComparePasswords(query.Password, login.Password)
+	if err != nil {
+		utils.Error(context, "账号或者密码有误")
+		return
+	}
+	utils.Success(context, "登录成功")
 }

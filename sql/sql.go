@@ -28,9 +28,3 @@ func ConnectMysql() {
 		fmt.Println("====连接成功====", DB)
 	}
 }
-
-func GetDB() *gorm.DB {
-	fmt.Println("=====")
-	fmt.Println(DB)
-	return DB
-}

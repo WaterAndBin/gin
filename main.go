@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	SetDB "order_go/middleware"
 	"order_go/routes"
 	"order_go/sql"
 )
@@ -13,7 +12,6 @@ func main() {
 	router := gin.Default()
 
 	sql.ConnectMysql()
-	router.Use(SetDB.InitDB())
 
 	routes.InitRouter(router)
 
